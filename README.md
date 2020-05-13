@@ -31,12 +31,318 @@ class Employee(models.Model):
     phone_number = models.CharField(max_length=16)
 ```
 
-Every field except for `first_name` and `last_name` in the *Employee* model is considered sensitive data. This means that only the *Profile* user with the linked `employee_profile`, or a user with elevated privileges (e.g. an admin or HR staff), can access those fields.
+Every field except for `first_name` and `last_name` in the `Employee` model is considered sensitive data. This means that only the `Profile` user with the linked `employee_profile`, or a user with elevated privileges (e.g. an admin or HR staff), can access those fields.
+
 
 Unfortunately, there is no simple way to control permissions down to the field level in DRF. Enter **drf-confidential**.
 
+## drf-confidential in action
 
-## Usage
+Let's suppose there are 2 users, *amazhong* and *googe*.
+
+*amazhong*, who is just a regular user without elevated privileges, makes a GET request at the `Employee` endpoint:
+
+* `GET /api/employees/`
+
+    * `200 OK`
+
+        ```json
+        {
+            "count": 2,
+            "next": null,
+            "previous": null,
+            "results": [
+                {
+                    "id": 1,
+                    "first_name": "Ama",
+                    "last_name": "Zhong",
+                    "address_1": "440 Terry Ave N",
+                    "address_2": "",
+                    "country": "US",
+                    "city": "Seattle",
+                    "phone_number": "+12062661000"
+                },
+                {
+                    "id": 2,
+                    "first_name": "Goo",
+                    "last_name": "Ge"
+                }
+            ]
+        }
+        ```
+
+*googe*, who has the elevated privileges, makes the same GET request at the endpoint:
+
+* `GET /api/employees/`
+
+    * `200 OK`
+
+        ```json
+        {
+            "count": 2,
+            "next": null,
+            "previous": null,
+            "results": [
+                {
+                    "id": 1,
+                    "first_name": "Ama",
+                    "last_name": "Zhong",
+                    "address_1": "440 Terry Ave N",
+                    "address_2": "",
+                    "country": "US",
+                    "city": "Seattle",
+                    "phone_number": "+12062661000"
+                },
+                {
+                    "id": 2,
+                    "first_name": "Goo",
+                    "last_name": "Ge",
+                    "address_1": "1600 Amphitheatre Pkwy",
+                    "address_2": "",
+                    "country": "US",
+                    "city": "Mountain View",
+                    "phone_number": "+16502530000"
+                }
+            ]
+        }
+        ```
+
+### What about GET requests at the detail level?
+
+amazhong
+
+* `GET /api/employees/1`
+
+    * `200 OK`
+
+        ```json
+        {
+            "id": 1,
+            "first_name": "Ama",
+            "last_name": "Zhong",
+            "address_1": "440 Terry Ave N",
+            "address_2": "",
+            "country": "US",
+            "city": "Seattle",
+            "phone_number": "+12062661000"
+        }
+        ```
+
+* `GET /api/employees/2`
+
+    *  `200 OK`
+
+        ```json
+        {
+            "id": 2,
+            "first_name": "Goo",
+            "last_name": "Ge"
+        }
+        ```
+
+---
+
+googe
+
+* `GET /api/employees/1`
+
+    * `200 OK`
+
+        ```json
+        {
+            "id": 1,
+            "first_name": "Ama",
+            "last_name": "Zhong",
+            "address_1": "440 Terry Ave N",
+            "address_2": "",
+            "country": "US",
+            "city": "Seattle",
+            "phone_number": "+12062661000"
+        }
+        ```
+
+* `GET /api/employees/2`
+
+    *  `200 OK`
+
+        ```json
+        {
+            "id": 2,
+            "first_name": "Goo",
+            "last_name": "Ge",
+            "address_1": "1600 Amphitheatre Pkwy",
+            "address_2": "",
+            "country": "US",
+            "city": "Mountain View",
+            "phone_number": "+16502530000"
+        }
+        ```
+
+### What about create, update, or delete?
+
+amazhong
+
+* `POST /api/employees/`
+
+    ```json
+    {
+        "first_name": "Ah",
+        "last_name": "Poh",
+        "address_1": "One Apple Park Way",
+        "address_2": "",
+        "country": "US",
+        "city": "Cupertino",
+        "phone_number": "+14089961010"
+    }
+    ```
+
+    * `403 FORBIDDEN`
+
+        ```json
+        {
+            "detail": "You do not have permission to perform this action."
+        }
+        ```
+
+* `PATCH /api/employees/1`
+
+    ```json
+    {
+        "address_1": "123 New Drive",
+        "phone_number": "+13214567890"
+    }
+    ```
+
+    * `200 OK`
+
+        ```json
+        {
+            "id": 1,
+            "first_name": "Ama",
+            "last_name": "Zhong",
+            "address_1": "123 New Drive",
+            "address_2": "",
+            "country": "US",
+            "city": "Seattle",
+            "phone_number": "+13214567890"
+        }
+        ```
+
+* `PATCH /api/employees/2`
+
+    ```json
+    {
+        "address_1": "123 New Drive",
+        "phone_number": "+13214567890"
+    }
+    ```
+
+    * `403 FORBIDDEN`
+
+        ```json
+        {
+            "detail": "You do not have permission to perform this action."
+        }
+        ```
+
+* `DELETE /api/employees/1`
+
+    * `204 NO CONTENT`
+
+* `DELETE /api/employees/2`
+
+    * `403 FORBIDDEN`
+
+---
+
+googe
+
+* `POST /api/employees/`
+
+    ```json
+    {
+        "first_name": "Ah",
+        "last_name": "Poh",
+        "address_1": "One Apple Park Way",
+        "address_2": "",
+        "country": "US",
+        "city": "Cupertino",
+        "phone_number": "+14089961010"
+    }
+    ```
+
+    * `201 CREATED`
+
+        ```json
+        {
+            "id": 3,
+            "first_name": "Ah",
+            "last_name": "Poh",
+            "address_1": "One Apple Park Way",
+            "address_2": "",
+            "country": "US",
+            "city": "Cupertino",
+            "phone_number": "+14089961010"
+        }
+        ```
+
+* `PATCH /api/employees/1`
+
+    ```json
+    {
+        "address_1": "123 New Drive",
+        "phone_number": "+13214567890"
+    }
+    ```
+
+    * `200 OK`
+
+        ```json
+        {
+            "id": 1,
+            "first_name": "Ama",
+            "last_name": "Zhong",
+            "address_1": "123 New Drive",
+            "address_2": "",
+            "country": "US",
+            "city": "Seattle",
+            "phone_number": "+13214567890"
+        }
+        ```
+
+* `PATCH /api/employees/2`
+
+    ```json
+    {
+        "address_1": "123 New Drive",
+        "phone_number": "+13214567890"
+    }
+    ```
+
+    * `200 OK`
+
+        ```json
+        {
+            "id": 2,
+            "first_name": "Goo",
+            "last_name": "Ge",
+            "address_1": "123 New Drive",
+            "address_2": "",
+            "country": "US",
+            "city": "Mountain View",
+            "phone_number": "+13214567890"
+        }
+        ```
+
+* `DELETE /api/employees/1`
+
+    * `204 NO CONTENT`
+
+* `DELETE /api/employees/2`
+
+    * `204 NO CONTENT`
+
+## Basic usage
 
 ### Step 1
 
