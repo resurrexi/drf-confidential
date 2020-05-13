@@ -33,4 +33,68 @@ class Employee(models.Model):
 
 Every field except for `first_name` and `last_name` in the *Employee* model is considered sensitive data. This means that only the *Profile* user with the linked `employee_profile`, or a user with elevated privileges (e.g. an admin or HR staff), can access those fields.
 
-Unfortunately, vanilla DRF does not have the capability to control permissions down to the field level. Enter **drf-confidential**.
+Unfortunately, there is no simple way to control permissions down to the field level in DRF. Enter **drf-confidential**.
+
+
+## Usage
+
+### Step 1
+
+Create a private permission on your model and `python manage.py migrate`.
+
+```python
+class Employee(models.Model):
+    ...  # fields defined earlier above
+
+    class Meta:
+        permissions = (
+            ("view_sensitive_employee", "Can view employees' sensitive data"),
+        )
+```
+
+### Step 2
+
+Add the `PrivateFieldsMixin` to your serializer and define your `private_fields` and `user_relation` lookup.
+
+```python
+from rest_framework import serializers
+
+from drf_confidential.mixins import PrivateFieldsMixin
+
+
+class EmployeeSerializer(PrivateFieldsMixin, serializers.ModelSerializer):
+    class Meta:
+        model = Employee
+        fields = "__all__"
+        private_fields = (
+            "address_1",
+            "address_2",
+            "country",
+            "city",
+            "phone_number",
+        )
+        user_relation = "login_account"
+```
+
+`PrivateFieldsMixin` is configured to look for cases where either the request user is the model instance, the request user owns the model instance, the request user has a relation to the model instance, or the request user has the elevated permissions. The `private_fields` meta attribute specifies which fields are considered sensitive. The `user_relation` lookup specifies the relation of the model to the user model. In the [model definitions above](#Motivation), the relation to the `Profile` model from the `Employee` model is through the back-reference, `login_account`.
+
+### Step 3
+
+Add the `PrivateFieldsPermission` as a permission class to the viewset.
+
+```python
+from rest_framework.viewsets import ModelViewSet
+
+from drf_confidential.permissions import PrivateFieldsPermission
+
+
+class EmployeeViewSet(ModelViewSet):
+    serializer_class = EmployeeSerializer
+    queryset = Employee.objects.all()
+    permission_classes = [
+        ...  # your default permissions, e.g. IsAuthenticated
+        PrivateFieldsPermission
+    ]
+```
+
+The permission follows the logic that a user must have either elevated permissions, have ownership, or have a relation to the model instance if they want to `update`, `partial_update`, or `delete`. For `create`, only users with elevated permissions are allowed. For `retrieve` and `list`, all users are allowed.
