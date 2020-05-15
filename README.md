@@ -38,84 +38,30 @@ Unfortunately, there is no simple way to control permissions down to the field l
 
 ## drf-confidential in action
 
-Let's suppose there are 2 users, *amazhong* and *googe*.
+Let's suppose there are 2 users:
 
-*amazhong*, who is just a regular user without elevated privileges, makes a GET request at the `Employee` endpoint:
+* *amazhong* is just a regular user without elevated privileges
+* *googe* is a staff/admin with elevated privileges
 
-* `GET /api/employees/`
+### What happens when they make a GET request on the `Employee` list endpoint?
 
-    * `200 OK`
+<table>
+<thead>
+<tr><td colspan="2">GET /api/employees/</td></tr>
+</thead>
+<tbody>
+<tr><td>amazhong</td><td>googe</td></tr>
+<tr>
+<td>
 
-        ```json
-        {
-            "count": 2,
-            "next": null,
-            "previous": null,
-            "results": [
-                {
-                    "id": 1,
-                    "first_name": "Ama",
-                    "last_name": "Zhong",
-                    "address_1": "440 Terry Ave N",
-                    "address_2": "",
-                    "country": "US",
-                    "city": "Seattle",
-                    "phone_number": "+12062661000"
-                },
-                {
-                    "id": 2,
-                    "first_name": "Goo",
-                    "last_name": "Ge"
-                }
-            ]
-        }
-        ```
+```json
+200 OK
 
-*googe*, who has the elevated privileges, makes the same GET request at the endpoint:
-
-* `GET /api/employees/`
-
-    * `200 OK`
-
-        ```json
-        {
-            "count": 2,
-            "next": null,
-            "previous": null,
-            "results": [
-                {
-                    "id": 1,
-                    "first_name": "Ama",
-                    "last_name": "Zhong",
-                    "address_1": "440 Terry Ave N",
-                    "address_2": "",
-                    "country": "US",
-                    "city": "Seattle",
-                    "phone_number": "+12062661000"
-                },
-                {
-                    "id": 2,
-                    "first_name": "Goo",
-                    "last_name": "Ge",
-                    "address_1": "1600 Amphitheatre Pkwy",
-                    "address_2": "",
-                    "country": "US",
-                    "city": "Mountain View",
-                    "phone_number": "+16502530000"
-                }
-            ]
-        }
-        ```
-
-### What about GET requests at the detail level?
-
-amazhong
-
-* `GET /api/employees/1`
-
-    * `200 OK`
-
-        ```json
+{
+    "count": 2,
+    "next": null,
+    "previous": null,
+    "results": [
         {
             "id": 1,
             "first_name": "Ama",
@@ -125,30 +71,27 @@ amazhong
             "country": "US",
             "city": "Seattle",
             "phone_number": "+12062661000"
-        }
-        ```
-
-* `GET /api/employees/2`
-
-    *  `200 OK`
-
-        ```json
+        },
         {
             "id": 2,
             "first_name": "Goo",
             "last_name": "Ge"
         }
-        ```
+    ]
+}
+```
 
----
+</td>
+<td>
 
-googe
+```json
+200 OK
 
-* `GET /api/employees/1`
-
-    * `200 OK`
-
-        ```json
+{
+    "count": 2,
+    "next": null,
+    "previous": null,
+    "results": [
         {
             "id": 1,
             "first_name": "Ama",
@@ -158,14 +101,7 @@ googe
             "country": "US",
             "city": "Seattle",
             "phone_number": "+12062661000"
-        }
-        ```
-
-* `GET /api/employees/2`
-
-    *  `200 OK`
-
-        ```json
+        },
         {
             "id": 2,
             "first_name": "Goo",
@@ -176,171 +112,315 @@ googe
             "city": "Mountain View",
             "phone_number": "+16502530000"
         }
-        ```
+    ]
+}
+```
 
-### What about create, update, or delete?
+</td>
+</tr>
+</tbody>
+</table>
 
-amazhong
+### What about GET requests at the detail level?
 
-* `POST /api/employees/`
+<table>
+<thead>
+<tr><td colspan="2">GET /api/employees/1/</td></tr>
+</thead>
+<tbody>
+<tr><td>amazhong</td><td>googe</td></tr>
+<tr>
+<td>
 
-    ```json
-    {
-        "first_name": "Ah",
-        "last_name": "Poh",
-        "address_1": "One Apple Park Way",
-        "address_2": "",
-        "country": "US",
-        "city": "Cupertino",
-        "phone_number": "+14089961010"
-    }
-    ```
+```json
+200 OK
 
-    * `403 FORBIDDEN`
+{
+    "id": 1,
+    "first_name": "Ama",
+    "last_name": "Zhong",
+    "address_1": "440 Terry Ave N",
+    "address_2": "",
+    "country": "US",
+    "city": "Seattle",
+    "phone_number": "+12062661000"
+}
+```
 
-        ```json
-        {
-            "detail": "You do not have permission to perform this action."
-        }
-        ```
+</td>
+<td>
 
-* `PATCH /api/employees/1`
+```json
+200 OK
 
-    ```json
-    {
-        "address_1": "123 New Drive",
-        "phone_number": "+13214567890"
-    }
-    ```
+{
+    "id": 1,
+    "first_name": "Ama",
+    "last_name": "Zhong",
+    "address_1": "440 Terry Ave N",
+    "address_2": "",
+    "country": "US",
+    "city": "Seattle",
+    "phone_number": "+12062661000"
+}
+```
 
-    * `200 OK`
+</td>
+</tr>
+</tbody>
+</table>
 
-        ```json
-        {
-            "id": 1,
-            "first_name": "Ama",
-            "last_name": "Zhong",
-            "address_1": "123 New Drive",
-            "address_2": "",
-            "country": "US",
-            "city": "Seattle",
-            "phone_number": "+13214567890"
-        }
-        ```
+<table>
+<thead>
+<tr><td colspan="2">GET /api/employees/2/</td></tr>
+</thead>
+<tbody>
+<tr><td>amazhong</td><td>googe</td></tr>
+<tr>
+<td>
 
-* `PATCH /api/employees/2`
+```json
+200 OK
 
-    ```json
-    {
-        "address_1": "123 New Drive",
-        "phone_number": "+13214567890"
-    }
-    ```
+{
+    "id": 2,
+    "first_name": "Goo",
+    "last_name": "Ge"
+}
+```
 
-    * `403 FORBIDDEN`
+</td>
+<td>
 
-        ```json
-        {
-            "detail": "You do not have permission to perform this action."
-        }
-        ```
+```json
+200 OK
 
-* `DELETE /api/employees/1`
+{
+    "id": 2,
+    "first_name": "Goo",
+    "last_name": "Ge",
+    "address_1": "1600 Amphitheatre Pkwy",
+    "address_2": "",
+    "country": "US",
+    "city": "Mountain View",
+    "phone_number": "+16502530000"
+}
+```
 
-    * `204 NO CONTENT`
+</td>
+</tr>
+</tbody>
+</table>
 
-* `DELETE /api/employees/2`
+### What about create?
 
-    * `403 FORBIDDEN`
+<table>
+<thead>
+<tr><td colspan="2">
+POST /api/employees/
 
----
+```json
+{
+    "first_name": "Ah",
+    "last_name": "Poh",
+    "address_1": "One Apple Park Way",
+    "address_2": "",
+    "country": "US",
+    "city": "Cupertino",
+    "phone_number": "+14089961010"
+}
+```
 
-googe
+</td></tr>
+</thead>
+<tbody>
+<tr><td>amazhong</td><td>googe</td></tr>
+<tr>
+<td>
 
-* `POST /api/employees/`
+```json
+403 FORBIDDEN
+```
 
-    ```json
-    {
-        "first_name": "Ah",
-        "last_name": "Poh",
-        "address_1": "One Apple Park Way",
-        "address_2": "",
-        "country": "US",
-        "city": "Cupertino",
-        "phone_number": "+14089961010"
-    }
-    ```
+</td>
+<td>
 
-    * `201 CREATED`
+```json
+201 CREATED
 
-        ```json
-        {
-            "id": 3,
-            "first_name": "Ah",
-            "last_name": "Poh",
-            "address_1": "One Apple Park Way",
-            "address_2": "",
-            "country": "US",
-            "city": "Cupertino",
-            "phone_number": "+14089961010"
-        }
-        ```
+{
+    "id": 3,
+    "first_name": "Ah",
+    "last_name": "Poh",
+    "address_1": "One Apple Park Way",
+    "address_2": "",
+    "country": "US",
+    "city": "Cupertino",
+    "phone_number": "+14089961010"
+}
+```
 
-* `PATCH /api/employees/1`
+</td>
+</tr>
+</tbody>
+</table>
 
-    ```json
-    {
-        "address_1": "123 New Drive",
-        "phone_number": "+13214567890"
-    }
-    ```
+### And update?
 
-    * `200 OK`
+<table>
+<thead>
+<tr><td colspan="2">
+PATCH /api/employees/1/
 
-        ```json
-        {
-            "id": 1,
-            "first_name": "Ama",
-            "last_name": "Zhong",
-            "address_1": "123 New Drive",
-            "address_2": "",
-            "country": "US",
-            "city": "Seattle",
-            "phone_number": "+13214567890"
-        }
-        ```
+```json
+{
+    "address_1": "123 New Drive",
+    "phone_number": "+13214567890"
+}
+```
 
-* `PATCH /api/employees/2`
+</td></tr>
+</thead>
+<tbody>
+<tr><td>amazhong</td><td>googe</td></tr>
+<tr>
+<td>
 
-    ```json
-    {
-        "address_1": "123 New Drive",
-        "phone_number": "+13214567890"
-    }
-    ```
+```json
+200 OK
 
-    * `200 OK`
+{
+    "id": 1,
+    "first_name": "Ama",
+    "last_name": "Zhong",
+    "address_1": "123 New Drive",
+    "address_2": "",
+    "country": "US",
+    "city": "Seattle",
+    "phone_number": "+13214567890"
+}
+```
 
-        ```json
-        {
-            "id": 2,
-            "first_name": "Goo",
-            "last_name": "Ge",
-            "address_1": "123 New Drive",
-            "address_2": "",
-            "country": "US",
-            "city": "Mountain View",
-            "phone_number": "+13214567890"
-        }
-        ```
+</td>
+<td>
 
-* `DELETE /api/employees/1`
+```json
+200 OK
 
-    * `204 NO CONTENT`
+{
+    "id": 1,
+    "first_name": "Ama",
+    "last_name": "Zhong",
+    "address_1": "123 New Drive",
+    "address_2": "",
+    "country": "US",
+    "city": "Seattle",
+    "phone_number": "+13214567890"
+}
+```
 
-* `DELETE /api/employees/2`
+</td>
+</tr>
+</tbody>
+</table>
 
-    * `204 NO CONTENT`
+<table>
+<thead>
+<tr><td colspan="2">
+PATCH /api/employees/2/
+
+```json
+{
+    "address_1": "123 New Drive",
+    "phone_number": "+13214567890"
+}
+```
+
+</td></tr>
+</thead>
+<tbody>
+<tr><td>amazhong</td><td>googe</td></tr>
+<tr>
+<td>
+
+```json
+403 FORBIDDEN
+```
+
+</td>
+<td>
+
+```json
+200 OK
+
+{
+    "id": 2,
+    "first_name": "Goo",
+    "last_name": "Ge",
+    "address_1": "123 New Drive",
+    "address_2": "",
+    "country": "US",
+    "city": "Mountain View",
+    "phone_number": "+13214567890"
+}
+```
+
+</td>
+</tr>
+</tbody>
+</table>
+
+### And delete?
+
+<table>
+<thead>
+<tr><td colspan="2">DELETE /api/employees/1/</td></tr>
+</thead>
+<tbody>
+<tr><td>amazhong</td><td>googe</td></tr>
+<tr>
+<td>
+
+```json
+204 NO CONTENT
+```
+
+</td>
+<td>
+
+```json
+204 NO CONTENT
+```
+
+</td>
+</tr>
+</tbody>
+</table>
+
+<table>
+<thead>
+<tr><td colspan="2">DELETE /api/employees/2/</td></tr>
+</thead>
+<tbody>
+<tr><td>amazhong</td><td>googe</td></tr>
+<tr>
+<td>
+
+```json
+403 FORBIDDEN
+```
+
+</td>
+<td>
+
+```json
+204 NO CONTENT
+```
+
+</td>
+</tr>
+</tbody>
+</table>
 
 ## Basic usage
 
@@ -383,6 +463,8 @@ class EmployeeSerializer(PrivateFieldsMixin, serializers.ModelSerializer):
 ```
 
 `PrivateFieldsMixin` is configured to look for cases where either the request user is the model instance, the request user owns the model instance, the request user has a relation to the model instance, or the request user has the elevated permissions. The `private_fields` meta attribute specifies which fields are considered sensitive. The `user_relation` lookup specifies the relation of the model to the user model. In the [model definitions above](#Motivation), the relation to the `Profile` model from the `Employee` model is through the back-reference, `login_account`.
+
+**Important Note:** If there are other mixins in the inheritance chain, place them before `PrivateFieldsMixin`, e.g. `class MySerializer(CustomMixin, AnotherMixin, PrivateFieldsMixin, serializers.ModelSerializer)`.
 
 ### Step 3
 
