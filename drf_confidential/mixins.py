@@ -50,7 +50,7 @@ class PrivateFieldsMixin:
         return False
 
     def to_representation(self, instance):
-        """Deserialize object instance to dict of primitive datatypes.
+        """Serialize object instance.
 
         The resulting data depends on the user's permission on the
         model instance. If the user does not have the permission, then
