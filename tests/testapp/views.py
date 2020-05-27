@@ -20,6 +20,7 @@ class EmployeeViewSet(ModelViewSet):
 class ProfileViewSet(ModelViewSet):
     serializer_class = ProfileSerializer
     queryset = Profile.objects.all()
+    permission_classes = (ConfidentialFieldsPermission,)
 
 
 class EmployeeJobViewSet(ModelViewSet):

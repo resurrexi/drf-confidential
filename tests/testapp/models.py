@@ -21,14 +21,19 @@ class Profile(AbstractUser):
     employee_profile = models.OneToOneField(
         Employee,
         null=True,
-        on_delete=models.PROTECT,
+        on_delete=models.SET_NULL,
         related_name="login_account",
     )
+
+    class Meta:
+        permissions = (
+            ("view_sensitive_profile", "Can view sensitive profile info"),
+        )
 
 
 class EmployeeJob(models.Model):
     employee = models.OneToOneField(
-        Employee, on_delete=models.PROTECT, related_name="job"
+        Employee, on_delete=models.CASCADE, related_name="job"
     )
     job_title = models.CharField(max_length=64)
     salary = models.IntegerField()

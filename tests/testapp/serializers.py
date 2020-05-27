@@ -19,10 +19,13 @@ class EmployeeSerializer(ConfidentialFieldsMixin, serializers.ModelSerializer):
         user_relation = "login_account"
 
 
-class ProfileSerializer(serializers.ModelSerializer):
+class ProfileSerializer(ConfidentialFieldsMixin, serializers.ModelSerializer):
+    employee_profile = EmployeeSerializer()
+
     class Meta:
         model = Profile
         fields = "__all__"
+        confidential_fields = ("email",)
 
 
 class EmployeeJobSerializer(
@@ -33,6 +36,7 @@ class EmployeeJobSerializer(
         fields = "__all__"
         confidential_fields = ("salary",)
         confidential_permission = "view_employee_salary"
+        user_relation = "employee__login_account"
 
 
 class PostSerializer(ConfidentialFieldsMixin, serializers.ModelSerializer):

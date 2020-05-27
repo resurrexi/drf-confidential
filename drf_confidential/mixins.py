@@ -8,7 +8,7 @@ from rest_framework.relations import PKOnlyObject
 permission_template = getattr(
     settings,
     "CONFIDENTIAL_PERMISSION_TEMPLATE",
-    "{app_label}.view_sensitive_{model_name}",
+    "view_sensitive_{model_name}",
 )
 ownership_field = getattr(
     settings, "CONFIDENTIAL_OWNERSHIP_FIELD", "created_by"
@@ -43,9 +43,13 @@ class ConfidentialFieldsMixin:
         """
         app_label = instance._meta.app_label
         model_name = instance._meta.model_name
-        confidential_permission = getattr(
-            self.Meta, "confidential_permission", permission_template
-        ).format(app_label=app_label, model_name=model_name)
+        confidential_permission = (
+            app_label
+            + "."
+            + getattr(
+                self.Meta, "confidential_permission", permission_template
+            ).format(model_name=model_name)
+        )
         user_link = getattr(self.Meta, "user_relation", None)
 
         try:

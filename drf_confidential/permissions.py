@@ -5,7 +5,7 @@ from rest_framework.permissions import BasePermission
 permission_template = getattr(
     settings,
     "CONFIDENTIAL_PERMISSION_TEMPLATE",
-    "{app_label}.view_sensitive_{model_name}",
+    "view_sensitive_{model_name}",
 )
 
 
@@ -14,9 +14,13 @@ class ConfidentialFieldsPermission(BasePermission):
         serializer = view.get_serializer()
         app_label = serializer.Meta.model._meta.app_label
         model_name = serializer.Meta.model._meta.model_name
-        confidential_permission = getattr(
-            serializer.Meta, "confidential_permission", permission_template
-        ).format(app_label=app_label, model_name=model_name)
+        confidential_permission = (
+            app_label
+            + "."
+            + getattr(
+                serializer.Meta, "confidential_permission", permission_template
+            ).format(model_name=model_name)
+        )
 
         # A user without the confidential permission should still be
         # able to list/update/delete records if the record is self or
@@ -31,9 +35,13 @@ class ConfidentialFieldsPermission(BasePermission):
         serializer = view.get_serializer()
         app_label = obj._meta.app_label
         model_name = obj._meta.model_name
-        confidential_permission = getattr(
-            serializer.Meta, "confidential_permission", permission_template
-        ).format(app_label=app_label, model_name=model_name)
+        confidential_permission = (
+            app_label
+            + "."
+            + getattr(
+                serializer.Meta, "confidential_permission", permission_template
+            ).format(model_name=model_name)
+        )
         user_link = getattr(serializer.Meta, "user_relation", None)
 
         # Any user should be allowed to use the retrieve action, due to
