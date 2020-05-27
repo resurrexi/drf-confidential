@@ -1,9 +1,21 @@
 from collections import OrderedDict
+
+from django.conf import settings
+
 from rest_framework.fields import SkipField
 from rest_framework.relations import PKOnlyObject
 
+permission_template = getattr(
+    settings,
+    "CONFIDENTIAL_PERMISSION_TEMPLATE",
+    "{app_label}.view_sensitive_{model_name}",
+)
+ownership_field = getattr(
+    settings, "CONFIDENTIAL_OWNERSHIP_FIELD", "created_by"
+)
 
-class PrivateFieldsMixin:
+
+class ConfidentialFieldsMixin:
     @staticmethod
     def _resolve_lookups(instance, lookups):
         """Traverse across the instance's relationship.
@@ -18,18 +30,22 @@ class PrivateFieldsMixin:
         else:
             return None
         if len(lookups) > 0:
-            return PrivateFieldsMixin._resolve_lookups(new_instance, lookups)
+            return ConfidentialFieldsMixin._resolve_lookups(
+                new_instance, lookups
+            )
         return new_instance
 
     def _check_exposure(self, instance):
         """Run check against the request user to determine exposure.
 
-        Evaluates user's permission to view the model instance's private
-        fields, or ownership, or self.
+        Evaluates user's permission to view the model instance's
+        confidential fields, or ownership, or self.
         """
         app_label = instance._meta.app_label
         model_name = instance._meta.model_name
-        private_permission = f"{app_label}.view_sensitive_{model_name}"
+        confidential_permission = getattr(
+            self.Meta, "confidential_permission", permission_template
+        ).format(app_label=app_label, model_name=model_name)
         user_link = getattr(self.Meta, "user_relation", None)
 
         try:
@@ -38,11 +54,11 @@ class PrivateFieldsMixin:
             user = None
 
         if user is not None:
-            if user.has_perm(private_permission):
+            if user.has_perm(confidential_permission):
                 return True
             if instance == user:
                 return True
-            if getattr(instance, "created_by", None) == user:
+            if getattr(instance, ownership_field, None) == user:
                 return True
             if user_link:
                 field_lookups = user_link.split("__")
@@ -54,7 +70,8 @@ class PrivateFieldsMixin:
 
         The resulting data depends on the user's permission on the
         model instance. If the user does not have the permission, then
-        the private fields are withheld. Otherwise, they will be shown.
+        the confidential fields are withheld. Otherwise, they will be
+        shown.
         """
         ret = OrderedDict()
         fields = self._readable_fields
@@ -64,7 +81,8 @@ class PrivateFieldsMixin:
             fields = [
                 field
                 for field in self._readable_fields
-                if field.field_name not in getattr(self.Meta, "private_fields")
+                if field.field_name
+                not in getattr(self.Meta, "confidential_fields")
             ]
 
         for field in fields:

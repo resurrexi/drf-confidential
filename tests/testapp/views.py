@@ -1,6 +1,6 @@
 from rest_framework.viewsets import ModelViewSet
 
-from drf_confidential.permissions import PrivateFieldsPermission
+from drf_confidential.permissions import ConfidentialFieldsPermission
 
 from .serializers import (
     EmployeeSerializer,
@@ -14,7 +14,7 @@ from .models import Employee, Profile, EmployeeJob, Post
 class EmployeeViewSet(ModelViewSet):
     serializer_class = EmployeeSerializer
     queryset = Employee.objects.all()
-    permission_classes = (PrivateFieldsPermission,)
+    permission_classes = (ConfidentialFieldsPermission,)
 
 
 class ProfileViewSet(ModelViewSet):
@@ -25,10 +25,10 @@ class ProfileViewSet(ModelViewSet):
 class EmployeeJobViewSet(ModelViewSet):
     serializer_class = EmployeeJobSerializer
     queryset = EmployeeJob.objects.all()
-    permission_classes = (PrivateFieldsPermission,)
+    permission_classes = (ConfidentialFieldsPermission,)
 
 
 class PostViewSet(ModelViewSet):
     serializer_class = PostSerializer
     queryset = Post.objects.all()
-    permission_classes = (PrivateFieldsPermission,)
+    permission_classes = (ConfidentialFieldsPermission,)

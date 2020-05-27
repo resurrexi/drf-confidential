@@ -1,15 +1,15 @@
 from rest_framework import serializers
 
-from drf_confidential.mixins import PrivateFieldsMixin
+from drf_confidential.mixins import ConfidentialFieldsMixin
 
 from .models import Employee, Profile, EmployeeJob, Post
 
 
-class EmployeeSerializer(PrivateFieldsMixin, serializers.ModelSerializer):
+class EmployeeSerializer(ConfidentialFieldsMixin, serializers.ModelSerializer):
     class Meta:
         model = Employee
         fields = "__all__"
-        private_fields = (
+        confidential_fields = (
             "address_1",
             "address_2",
             "country",
@@ -25,16 +25,18 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class EmployeeJobSerializer(serializers.ModelSerializer):
+class EmployeeJobSerializer(
+    ConfidentialFieldsMixin, serializers.ModelSerializer
+):
     class Meta:
         model = EmployeeJob
         fields = "__all__"
-        private_fields = ("salary",)
-        private_permission = "view_employee_salary"
+        confidential_fields = ("salary",)
+        confidential_permission = "view_employee_salary"
 
 
-class PostSerializer(serializers.ModelSerializer):
+class PostSerializer(ConfidentialFieldsMixin, serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = "__all__"
-        private_fields = ("secret_note",)
+        confidential_fields = ("secret_note",)
