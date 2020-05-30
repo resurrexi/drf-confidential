@@ -52,10 +52,7 @@ class ConfidentialFieldsMixin:
         )
         user_link = getattr(self.Meta, "user_relation", None)
 
-        try:
-            user = self.context.get("request").user
-        except AttributeError:
-            user = None
+        user = getattr(self.context.get("request"), "user", None)
 
         if user is not None:
             if user.has_perm(confidential_permission):
@@ -77,37 +74,11 @@ class ConfidentialFieldsMixin:
         the confidential fields are withheld. Otherwise, they will be
         shown.
         """
-        ret = OrderedDict()
-        fields = self._readable_fields
+        ret = super().to_representation(instance)
         expose = self._check_exposure(instance)
 
         if not expose:
-            fields = [
-                field
-                for field in self._readable_fields
-                if field.field_name
-                not in getattr(self.Meta, "confidential_fields")
-            ]
-
-        for field in fields:
-            try:
-                attribute = field.get_attribute(instance)
-            except SkipField:
-                continue
-
-            # We skip `to_representation` for `None` values so that
-            # fields do not have to explicitly deal with that case.
-            #
-            # For related fields with `use_pk_only_optimization` we need
-            # to resolve the pk value.
-            check_for_none = (
-                attribute.pk
-                if isinstance(attribute, PKOnlyObject)
-                else attribute
-            )
-            if check_for_none is None:
-                ret[field.field_name] = None
-            else:
-                ret[field.field_name] = field.to_representation(attribute)
+            for field in getattr(self.Meta, "confidential_fields"):
+                del ret[field]
 
         return ret
