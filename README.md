@@ -1,5 +1,8 @@
 # drf-confidential
 
+[![Build Status](https://travis-ci.org/resurrexi/drf-confidential.svg?branch=master)](https://travis-ci.org/resurrexi/drf-confidential)
+[![codecov](https://codecov.io/gh/resurrexi/drf-confidential/branch/master/graph/badge.svg)](https://codecov.io/gh/resurrexi/drf-confidential)
+
 **drf-confidential** is a package to help you control how a model's sensitive data is shared across your API.
 
 ## Motivation
