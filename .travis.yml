@@ -20,9 +20,9 @@ install:
   - pip install -r requirements.dev.txt
   - pip install Django==$DJANGO
   - pip install djangorestframework==$DRF
-  - python manage.py makemigrations
-  - python manage.py migrate
-script:
-  - pytest
+script: |
+  python manage.py makemigrations &&
+  python manage.py migrate &&
+  pytest
 after_success:
   - codecov
