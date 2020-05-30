@@ -1,0 +1,17 @@
+[run]
+branch = True
+source = .
+omit =
+    */node_modules/*
+    */tests/*
+    manage.py
+
+[report]
+show_missing = True
+skip_covered = True
+exclude_lines =
+    if settings.DEBUG:
+    pragma: no cover
+    raise NotImplementedError
+    if __name__ == .__main__.:
+ignore_errors = True
