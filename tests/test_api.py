@@ -740,5 +740,50 @@ class EmployeeJobAPITest(APITestCase):
 
 
 class PostAPITest(APITestCase):
-    # TODO: add logic
-    pass
+    @classmethod
+    def setUpTestData(cls):
+        # create users
+        cls.user1 = _USER_MODEL.objects.create_user(**_USER1)
+        cls.user2 = _USER_MODEL.objects.create_user(**_USER2)
+
+        # create posts
+        cls.post1 = Post.objects.create(
+            post_title=get_random_string(length=16),
+            post_content=get_random_string(length=32),
+            secret_note=get_random_string(length=16),
+            created_by=cls.user1,
+        )
+        cls.post2 = Post.objects.create(
+            post_title=get_random_string(length=16),
+            post_content=get_random_string(length=32),
+            secret_note=get_random_string(length=16),
+            created_by=cls.user2,
+        )
+
+        # set confidential permissions for users
+        confidential_perm = Permission.objects.get(
+            codename="view_sensitive_post"
+        )
+        cls.user2.user_permissions.add(confidential_perm)
+
+    def setUp(self):
+        self.detail_name = "post-detail"
+
+    def test_hide_sensitive_fields_if_not_owner(self):
+        self.client.force_authenticate(user=self.user1)
+
+        response = self.client.get(
+            reverse(self.detail_name, kwargs={"pk": self.post2.pk})
+        )
+        self.assertTrue(status.is_success(response.status_code))
+        self.assertNotIn("secret_note", response.data)
+
+    def test_show_sensitive_fields_for_elevated_user(self):
+        self.client.force_authenticate(user=self.user2)
+
+        response = self.client.get(
+            reverse(self.detail_name, kwargs={"pk": self.post1.pk})
+        )
+        self.assertTrue(status.is_success(response.status_code))
+        self.assertIn("secret_note", response.data)
+        self.assertEqual(response.data["secret_note"], self.post1.secret_note)
