@@ -429,7 +429,7 @@ PATCH /api/employees/2/
 
 ### Step 1
 
-Create a private permission on your model and `python manage.py migrate`.
+Create a confidential permission on your model and `python manage.py migrate`.
 
 ```python
 class Employee(models.Model):
@@ -443,19 +443,19 @@ class Employee(models.Model):
 
 ### Step 2
 
-Add the `PrivateFieldsMixin` to your serializer and define your `private_fields` and `user_relation` lookup.
+Add the `ConfidentialFieldsMixin` to your serializer and define your `confidential_fields` and `user_relation` lookup.
 
 ```python
 from rest_framework import serializers
 
-from drf_confidential.mixins import PrivateFieldsMixin
+from drf_confidential.mixins import ConfidentialFieldsMixin
 
 
-class EmployeeSerializer(PrivateFieldsMixin, serializers.ModelSerializer):
+class EmployeeSerializer(ConfidentialFieldsMixin, serializers.ModelSerializer):
     class Meta:
         model = Employee
         fields = "__all__"
-        private_fields = (
+        confidential_fields = (
             "address_1",
             "address_2",
             "country",
@@ -465,18 +465,16 @@ class EmployeeSerializer(PrivateFieldsMixin, serializers.ModelSerializer):
         user_relation = "login_account"
 ```
 
-`PrivateFieldsMixin` is configured to look for cases where either the request user is the model instance, the request user owns the model instance, the request user has a relation to the model instance, or the request user has the elevated permissions. The `private_fields` meta attribute specifies which fields are considered sensitive. The `user_relation` lookup specifies the relation of the model to the user model. In the [model definitions above](#Motivation), the relation to the `Profile` model from the `Employee` model is through the back-reference, `login_account`.
-
-**Important Note:** If there are other mixins in the inheritance chain, place them before `PrivateFieldsMixin`, e.g. `class MySerializer(CustomMixin, AnotherMixin, PrivateFieldsMixin, serializers.ModelSerializer)`.
+`ConfidentialFieldsMixin` is configured to look for cases where either the request user is the model instance, the request user owns the model instance, the request user has a relation to the model instance, or the request user has the elevated permissions. The `confidential_fields` meta attribute specifies which fields are considered sensitive. The `user_relation` lookup specifies the relation of the model to the user model. In the [model definitions above](#Motivation), the relation to the `Profile` model from the `Employee` model is through the back-reference, `login_account`.
 
 ### Step 3
 
-Add the `PrivateFieldsPermission` as a permission class to the viewset.
+Add the `ConfidentialFieldsPermission` as a permission class to the viewset.
 
 ```python
 from rest_framework.viewsets import ModelViewSet
 
-from drf_confidential.permissions import PrivateFieldsPermission
+from drf_confidential.permissions import ConfidentialFieldsPermission
 
 
 class EmployeeViewSet(ModelViewSet):
@@ -484,7 +482,7 @@ class EmployeeViewSet(ModelViewSet):
     queryset = Employee.objects.all()
     permission_classes = [
         ...  # your default permissions, e.g. IsAuthenticated
-        PrivateFieldsPermission
+        ConfidentialFieldsPermission
     ]
 ```
 
