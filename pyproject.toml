@@ -4,6 +4,13 @@ version = "0.1.0"
 description = "Handle sensitive fields for django rest framework"
 authors = ["Liquan Yang <yang.liquan87@gmail.com>"]
 license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/resurrexi/drf-confidential"
+repository = "https://github.com/resurrexi/drf-confidential"
+classifiers = [
+  "Framework :: Django",
+  "Topic :: Software Development :: Libraries :: Python Modules"
+]
 
 [tool.poetry.dependencies]
 python = "^3.7"
