@@ -5,6 +5,12 @@
 
 **drf-confidential** is a package to help you control how a model's sensitive data is shared across your API.
 
+## Installation
+
+```bash
+pip install drf-confidential
+```
+
 ## Motivation
 
 Imagine you have the following models declared as:
