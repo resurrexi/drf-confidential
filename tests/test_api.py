@@ -724,6 +724,7 @@ class EmployeeJobAPITest(APITestCase):
         self.assertEqual(response.data["salary"], self.job1.salary)
 
     def test_deep_user_relation_is_resolved(self):
+        # user1 does not have permission
         self.client.force_authenticate(user=self.user1)
 
         response = self.client.get(
@@ -736,7 +737,22 @@ class EmployeeJobAPITest(APITestCase):
             reverse(self.detail_name, kwargs={"pk": self.job2.pk})
         )
         self.assertTrue(status.is_success(response.status_code))
-        self.assertNotIn("salary", response.data)
+        self.assertNotIn("salary", response.data.keys())
+
+        # user2 has permission
+        self.client.force_authenticate(user=self.user2)
+
+        response = self.client.get(
+            reverse(self.detail_name, kwargs={"pk": self.job1.pk})
+        )
+        self.assertTrue(status.is_success(response.status_code))
+        self.assertEqual(response.data["salary"], self.job1.salary)
+
+        response = self.client.get(
+            reverse(self.detail_name, kwargs={"pk": self.job2.pk})
+        )
+        self.assertTrue(status.is_success(response.status_code))
+        self.assertEqual(response.data["salary"], self.job2.salary)
 
 
 class PostAPITest(APITestCase):
@@ -776,7 +792,7 @@ class PostAPITest(APITestCase):
             reverse(self.detail_name, kwargs={"pk": self.post2.pk})
         )
         self.assertTrue(status.is_success(response.status_code))
-        self.assertNotIn("secret_note", response.data)
+        self.assertNotIn("secret_note", response.data.keys())
 
     def test_show_sensitive_fields_for_elevated_user(self):
         self.client.force_authenticate(user=self.user2)
@@ -785,5 +801,5 @@ class PostAPITest(APITestCase):
             reverse(self.detail_name, kwargs={"pk": self.post1.pk})
         )
         self.assertTrue(status.is_success(response.status_code))
-        self.assertIn("secret_note", response.data)
+        self.assertIn("secret_note", response.data.keys())
         self.assertEqual(response.data["secret_note"], self.post1.secret_note)

@@ -1,9 +1,4 @@
-from collections import OrderedDict
-
 from django.conf import settings
-
-from rest_framework.fields import SkipField
-from rest_framework.relations import PKOnlyObject
 
 permission_template = getattr(
     settings,
@@ -67,7 +62,7 @@ class ConfidentialFieldsMixin:
         return False
 
     def to_representation(self, instance):
-        """Serialize object instance.
+        """Override deserialization method.
 
         The resulting data depends on the user's permission on the
         model instance. If the user does not have the permission, then

@@ -2,6 +2,8 @@ from django.conf import settings
 
 from rest_framework.permissions import BasePermission
 
+from .mixins import ConfidentialFieldsMixin
+
 permission_template = getattr(
     settings,
     "CONFIDENTIAL_PERMISSION_TEMPLATE",
@@ -53,5 +55,9 @@ class ConfidentialFieldsPermission(BasePermission):
         if obj == request.user:
             return True
         if user_link:
-            return getattr(obj, user_link, None) == request.user
+            field_lookups = user_link.split("__")
+            return (
+                ConfidentialFieldsMixin._resolve_lookups(obj, field_lookups)
+                == request.user
+            )
         return False
