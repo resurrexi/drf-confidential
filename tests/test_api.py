@@ -739,6 +739,11 @@ class EmployeeJobAPITest(APITestCase):
         self.assertTrue(status.is_success(response.status_code))
         self.assertNotIn("salary", response.data.keys())
 
+        response = self.client.delete(
+            reverse(self.detail_name, kwargs={"pk": self.job2.pk})
+        )
+        self.assertTrue(status.is_client_error(response.status_code))
+
         # user2 has permission
         self.client.force_authenticate(user=self.user2)
 
@@ -753,6 +758,11 @@ class EmployeeJobAPITest(APITestCase):
         )
         self.assertTrue(status.is_success(response.status_code))
         self.assertEqual(response.data["salary"], self.job2.salary)
+
+        response = self.client.delete(
+            reverse(self.detail_name, kwargs={"pk": self.job1.pk})
+        )
+        self.assertTrue(status.is_success(response.status_code))
 
 
 class PostAPITest(APITestCase):

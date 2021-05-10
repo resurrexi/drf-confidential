@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "drf-confidential"
-version = "0.1.1"
+version = "1.0.0"
 description = "Handle sensitive fields for django rest framework"
 authors = ["Liquan Yang <yang.liquan87@gmail.com>"]
 license = "MIT"
