@@ -74,6 +74,9 @@ class ConfidentialFieldsMixin:
 
         if not expose:
             for field in getattr(self.Meta, "confidential_fields"):
-                del ret[field]
+                try:
+                    del ret[field]
+                except KeyError:
+                    pass  # field doesn't exist in ret so ignore
 
         return ret
