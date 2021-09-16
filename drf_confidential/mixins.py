@@ -76,7 +76,7 @@ class ConfidentialFieldsMixin:
             for field in getattr(self.Meta, "confidential_fields"):
                 try:
                     del ret[field]
-                except KeyError:
+                except KeyError:  # pragma: no cover
                     pass  # field doesn't exist in ret so ignore
 
         return ret

@@ -658,6 +658,24 @@ class ProfileAPITest(APITestCase):
         )
         self.assertNotIn("email", response.data.keys())
 
+    def test_has_obj_permission_if_obj_is_user(self):
+        self.client.force_authenticate(user=self.user1)
+
+        response = self.client.patch(
+            reverse(self.detail_name, kwargs={"pk": self.user1.pk}),
+            {"email": "user1@email.com"},
+        )
+        self.assertTrue(status.is_success(response.status_code))
+
+    def test_has_no_obj_permission_if_obj_is_not_user(self):
+        self.client.force_authenticate(user=self.user1)
+
+        response = self.client.patch(
+            reverse(self.detail_name, kwargs={"pk": self.user2.pk}),
+            {"username": "modified.user2"},
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
 
 class EmployeeJobAPITest(APITestCase):
     @classmethod
@@ -794,6 +812,15 @@ class PostAPITest(APITestCase):
 
     def setUp(self):
         self.detail_name = "post-detail"
+
+    def test_expose_sensitive_fields_if_owner(self):
+        self.client.force_authenticate(user=self.user1)
+
+        response = self.client.get(
+            reverse(self.detail_name, kwargs={"pk": self.post1.pk})
+        )
+        self.assertTrue(status.is_success(response.status_code))
+        self.assertIn("secret_note", response.data.keys())
 
     def test_hide_sensitive_fields_if_not_owner(self):
         self.client.force_authenticate(user=self.user1)
