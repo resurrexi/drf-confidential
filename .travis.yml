@@ -5,12 +5,14 @@ python:
   - 3.8
   - 3.9
 env:
-  - DJANGO=2.2.0
-  - DJANGO=3.2.0
-  - DRF=3.9.0
-  - DRF=3.10.0
-  - DRF=3.11.0
-  - DRF=3.12.0
+  - DJANGO=2.2.0 DRF=3.9.0
+  - DJANGO=2.2.0 DRF=3.10.0
+  - DJANGO=2.2.0 DRF=3.11.0
+  - DJANGO=2.2.0 DRF=3.12.0
+  - DJANGO=3.2.0 DRF=3.9.0
+  - DJANGO=3.2.0 DRF=3.10.0
+  - DJANGO=3.2.0 DRF=3.11.0
+  - DJANGO=3.2.0 DRF=3.12.0
 install:
   - pip install -q -r requirements.dev.txt
   - pip install -q django~=$DJANGO
